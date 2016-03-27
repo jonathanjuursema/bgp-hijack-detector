@@ -1,0 +1,24 @@
+{
+  "name": "bgp-hijack-detector",
+  "version": "0.0.0",
+  "description": "A BGP hijack detector written in node.js.",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/jonathanjuursema/bgp-hijack-detector.git"
+  },
+  "keywords": [
+    "bgp",
+    "hijack",
+    "detector"
+  ],
+  "author": "Jonathan Juursema",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/jonathanjuursema/bgp-hijack-detector/issues"
+  },
+  "homepage": "https://github.com/jonathanjuursema/bgp-hijack-detector#readme"
+}
