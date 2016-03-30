@@ -3,9 +3,6 @@
   "version": "0.0.0",
   "description": "A BGP hijack detector written in node.js.",
   "main": "server.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "repository": {
     "type": "git",
     "url": "git+ssh://git@github.com/jonathanjuursema/bgp-hijack-detector.git"
@@ -20,5 +17,10 @@
   "bugs": {
     "url": "https://github.com/jonathanjuursema/bgp-hijack-detector/issues"
   },
-  "homepage": "https://github.com/jonathanjuursema/bgp-hijack-detector#readme"
+  "homepage": "https://github.com/jonathanjuursema/bgp-hijack-detector#readme",
+  "dependencies": {
+    "net-ping": "^1.2.0",
+    "node-rest-client": "^1.8.0",
+    "sleep": "^3.0.1"
+  }
 }
