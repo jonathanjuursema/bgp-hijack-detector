@@ -1,16 +1,24 @@
-var config = require('./config.js');
+var process = require('process');
 
+var config = require('./config.js');
 var log = require('./log.js');
+
+if (process.getuid() != 0) {
+  log("error", "You need to be root to run this program so we can send ICMP pings for better traceroute results.");
+  process.exit(1);
+}
 
 var traceroute = (require('net-ping')).createSession();
 var rest = new (require('node-rest-client').Client)();
 var sleep = require('sleep');
 
 var hopinfo = {};
+var traceroutedone = false;
 
 log("info", "Starting traceroute...");
 
-traceroute.traceRoute(config.host, 30, parseHop, tracerouteDone);
+// We perform two checks. One looks up the current announcements for a given set of IP-addresses, the other performs a traceroute to a specific hosts and verifies the path.
+traceroute.traceRoute(config.host, {ttl: 30, maxHopTimeouts: 10}, parseHop, tracerouteDone);
 
 function parseHop(error, target, ttl, send, received) {
   if (error) {
@@ -36,33 +44,41 @@ function parseHop(error, target, ttl, send, received) {
         // RIPE cannot provide us with an AS
         } else {
           log("debug", "No RIPE info available for " + ip + ".");
+          hopinfo[ip].as = -1;
+          hopinfo[ip].holder = "!!! Unannounced IP(s) !!!";
           hopinfo[ip].completed = true;
         }
-        tracerouteDone(null, null);
+        parseTraceroute();
       });
     })(ip);
   } else {
-    log("warn", "Traceroute contains a hidden hop!");
+    log("warn", "Traceroute cannot ping hop!");
+    ip = "0.0.0." + Object.keys(hopinfo).length;
+    hopinfo[ip] = {'ip': ip, 'completed': true, 'as': -2, 'holder': "!!! Unpingable Hop(s) !!!"};
   }
 }
 
 function tracerouteDone(error, trgt) {  
+  
+  traceroutedone = true;
+  parseTraceroute();
+  
+}
+
+function parseTraceroute() {
+  
   var hops = Object.keys(hopinfo);
   
   // This code block will be called every time. First we need to check if all information gathering is complete.
   for (h in hops) {
-    if (hopinfo[hops[h]].completed == false) {
+    if (hopinfo[hops[h]].completed == false || !traceroutedone) {
       log("debug", "Waiting for more information...");
       return;
     }
   }
-
+  
   log("info", "Traceroute finished and data gathered.");
   
-  parseTraceroute();
-}
-
-function parseTraceroute() {
   log("info", "Analyzing traceroute...");
   
   var aspath = [];
@@ -70,32 +86,18 @@ function parseTraceroute() {
   
   /* 
      We check whether IP addresses are announced (and thus public).
-     We allow the traceroute to start internally (using private IP's) but once we reach the public internet, if we cannot resolve an IP to an AS we error.
   */
   var internal = true;
   var hops = Object.keys(hopinfo);
-  for (h in hops) {
-    if (hopinfo[hops[h]].as == null) {
-      if (internal) {
-        log("debug", "In internal network...");
-      } else {
-        log("warn", "We unexpectedly hit an internal IP address...");
-      }
-    } else {
-      if (internal) {
-        internal = false;
-        log("debug", "We went from an internal network to an outside network...");
-      } else {
-        log("debug", "Normal hop transition.");
-      }
-    }
-    
+  for (h in hops) {    
     // If IP address is normal, verify if we switched AS and add new AS to path.
     var as = hopinfo[hops[h]].as;
     if (as != null) {
-      if (aspath.indexOf(as) == -1) {
+      if (aspath[aspath.length - 1] != as) {
         aspath.push(as);
-        aspathinfo.push({'as': as, 'holder': hopinfo[hops[h]].holder});
+        aspathinfo.push({'as': as, 'holder': hopinfo[hops[h]].holder, 'hops': 1});
+      } else {
+        aspathinfo[aspathinfo.length-1].hops += 1;
       }
     }
   }
@@ -103,21 +105,17 @@ function parseTraceroute() {
   log("info", "Verifying AS path...");
     
   // We now have a complete AS path from monitor to host. Let's compare it with the expected path.
-  if (aspath.length != config.path.length) {
-    log("warn", "The measured path and configured path are not of the same length! Something is wrong! (Altough it might just be your configured path...)");
-  } else {
-    for (h in aspath) {
+  for (h in aspathinfo) {
+    if (h < config.path.length) {
       if (aspath[h] === config.path[h]) {
-        log("debug", "Hop "+h+" is good: "+aspath[h]+" ().");
+        log("info", "AS Hop "+h+" is good: "+aspath[h]+" ("+aspathinfo[h].holder+"). Hops in AS: " + aspathinfo[h].hops);
       } else {
-        if (h > 0) {
-          log("warn", "Hop "+h+" (prev. "+aspath[h-1]+": "+aspathinfo[h-1].holder+") is off: was "+aspath[h]+" ("+aspathinfo[h].holder+") but should be "+config.path[h]+". (Is your configured path right?)");
-        } else {
-          log("warn", "Hop "+h+" is off: was "+aspath[h]+" ("+aspathinfo[h].holder+") but should be "+config.path[h]+". (Is your configured path right?)");
-        }
+        log("warn", "AS Hop "+h+" is off: was "+aspath[h]+" ("+aspathinfo[h].holder+") but should be "+config.path[h]+" ("+config.pathname[h]+"). (Is your configured path right?) Hops in AS: " + aspathinfo[h].hops);
       }
+    } else {
+      log("warn", "AS Hop "+h+" is unexpected, path longer than expected: "+aspath[h]+" ("+aspathinfo[h].holder+"). Hops in AS: " + aspathinfo[h].hops);
     }
   }
   
-  log("info", "Traceroute execution and verification is complete. Any warnings have been shown.");
+  log("info", "Traceroute execution and verification is complete. Total hop count: " + Object.keys(hopinfo).length + ". Any warnings have been shown.");
 }

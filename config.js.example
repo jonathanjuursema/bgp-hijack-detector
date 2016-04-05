@@ -1,0 +1,23 @@
+var config = {};
+
+// This configuration file is an example. It shows how this file would look like if you wanted to monitor the IP traffic towards the University of Twente from a home internet provider.
+
+// Should we display debug messages?
+config.debug = false;
+
+// What will be our reference IP address? This node will represent the AS you are trying to monitor. This IP address should be public and pingable.
+config.host = "130.89.190.20";
+
+// Expected path from monitoring network to host. Do include the monitoring AS and the host AS. The last AS is assumed to be your own AS.
+config.path = [25596, 1200, 1103, 1133];
+// For your own overview, what are the names of these AS's?
+config.pathname = ["Cambrium", "AMS-IX", "Surfnet", "UTwente"];
+
+// Addresses which should be checked for announcing AS's.
+config.prefixes = ["130.89.2.35", "2001:67c:2564:a120::132"];
+
+// Trusted AS's. If there are other AS's supposed to announce one or more of the above addresses as well, you can configure them here.
+config.trusted = [1103]
+
+module.exports = config;
+
