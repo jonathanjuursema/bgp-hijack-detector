@@ -1,23 +1,40 @@
 var config = {};
 
-// This configuration file is an example. It shows how this file would look like if you wanted to monitor the IP traffic towards the University of Twente from a home internet provider.
+// This configuration file is an example. It shows how this file would look like if you wanted to monitor the IP traffic towards the University of Twente from a DigitalOcean VPS.
 
 // Should we display debug messages?
-config.debug = false;
+config.debug = true;
+
+// Should we e-mail only if any warnings occur (false) or always (true)?
+config.always = true;
 
 // What will be our reference IP address? This node will represent the AS you are trying to monitor. This IP address should be public and pingable.
-config.host = "130.89.190.20";
+config.host = "130.89.1.2";
 
 // Expected path from monitoring network to host. Do include the monitoring AS and the host AS. The last AS is assumed to be your own AS.
-config.path = [25596, 1200, 1103, 1133];
+config.path = [200130, 1200, 1103, 1133];
 // For your own overview, what are the names of these AS's?
-config.pathname = ["Cambrium", "AMS-IX", "Surfnet", "UTwente"];
+config.pathname = ["DigitalOcean", "AMS-IX", "SURFnet", "UTwente"];
 
-// Addresses which should be checked for announcing AS's.
-config.prefixes = ["130.89.2.35", "2001:67c:2564:a120::132"];
+// If you expect internal IP addresses or unpingable hosts in your routing path, you can indicate those using the following AS numbers:
+// -1 = Unannounced IP
+// -2 = Unpingable Hop
 
-// Trusted AS's. If there are other AS's supposed to announce one or more of the above addresses as well, you can configure them here.
-config.trusted = [1103]
+// Addresses which should be checked for announcing AS's. At each run, we will generate some random IP's from this range and see which AS's announce these IP's.
+config.prefixes = ["130.89.0.0/16", "2001:67c:2564::/48"];
+
+// Trusted AS's. If there are other AS's supposed to announce one or more of the above addresses as well, you can configure them here. Include your own AS as well.
+config.trusted = [1133, 1103];
+
+// Email settings.
+config.email = {
+  'server': 'smtp.emailserver.net',
+  'user': 'johndoe',
+  'pass': 'correct horse battery staple',
+  'ssl': true,
+  'from': 'system@example.net',
+  'rcpt': 'security@example.net'
+};
 
 module.exports = config;
 

@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/jonathanjuursema/bgp-hijack-detector#readme",
   "dependencies": {
+    "emailjs": "^1.0.4",
     "net-ping": "^1.2.0",
     "node-rest-client": "^1.8.0",
     "sleep": "^3.0.1"
