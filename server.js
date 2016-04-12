@@ -1,3 +1,13 @@
+/*
+ * A simple BGP hijack detector in Node.JS. Makes use of the RipeSTAT API.
+ * Source available on GitHub: https://github.com/jonathanjuursema/bgp-hijack-detector
+ * 
+ * Copyright (C) 2016, Jonathan Juursema (mail@jonathanj.nl)
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+*/
+
 // Used to gracefully exit the program.
 var process = require('process');
 

@@ -1,3 +1,12 @@
+/*
+ * A small and ad-hoc logging utility with mail function.
+ * Source available on GitHub: https://github.com/jonathanjuursema/bgp-hijack-detector
+ * 
+ * Copyright (C) 2016, Jonathan Juursema (mail@jonathanj.nl)
+ *
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+*/
 
 // Configuration.
 var config = require('./config.js');
